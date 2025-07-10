@@ -1,0 +1,435 @@
+CALL dq.validate_backoffice_all('ms',   -- your CMS dataset
+                                'mo');  -- your FMO dataset
+
+
+/* ───────────────────────────────────────────────────────────────
+   Setup   (run once)
+   ─────────────────────────────────────────────────────────────── */
+CREATE SCHEMA IF NOT EXISTS dq;
+
+CREATE TABLE IF NOT EXISTS dq.DQ_ISSUES
+(
+  run_ts        TIMESTAMP,
+  system        STRING,          --  'X-SYS'
+  table_name    STRING,
+  issue_type    STRING,
+  key_json      STRING,          -- composite key in JSON form
+  extra_detail  STRING           -- optional free-text
+);
+
+/* ───────────────────────────────────────────────────────────────
+   Stored-procedure: validates CMS + FMO + cross-system rules
+   ─────────────────────────────────────────────────────────────── */
+CREATE OR REPLACE PROCEDURE dq.validate_backoffice_all
+(
+  cms_ds STRING,   
+  fmo_ds STRING    
+)
+BEGIN
+  DECLARE ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP();
+
+  /* Optional: wipe earlier run from today */
+  DELETE FROM dq.DQ_ISSUES WHERE DATE(run_ts)=CURRENT_DATE();
+
+  /* ========= 1. MS-only validations ========================= */
+
+  /* 1-A  Duplicate “open” contract rows */
+  INSERT INTO dq.DQ_ISSUES
+  SELECT ts,'MS','MS_CONTRACT','DUP_OPEN',
+         TO_JSON_STRING(STRUCT(TERRITORY_ID,CONTRACT_ID)),
+         CONCAT('open_cnt=',open_cnt)
+  FROM (
+    SELECT TERRITORY_ID, CONTRACT_ID,
+           COUNT(*) AS open_cnt
+    FROM  EXECUTE IMMEDIATE FORMAT("""
+            SELECT * FROM `%s.MS_CONTRACT`
+            WHERE EFFECTIVE_TO_DATE = DATETIME '9999-12-31 23:59:59'""",
+            cms_ds)
+    GROUP BY 1,2 HAVING open_cnt>1
+  );
+
+  /* 1-B  Overlapping histories */
+  EXECUTE IMMEDIATE FORMAT("""
+    WITH ordered AS (
+      SELECT
+        TERRITORY_ID, CONTRACT_ID,
+        EFFECTIVE_FROM_DATE FROM_DT, EFFECTIVE_TO_DATE TO_DT,
+        LEAD(EFFECTIVE_FROM_DATE) OVER
+            (PARTITION BY TERRITORY_ID, CONTRACT_ID
+             ORDER BY EFFECTIVE_FROM_DATE DESC) AS NEXT_DT
+      FROM `%s.MS_CONTRACT`)
+    INSERT INTO dq.DQ_ISSUES
+    SELECT TIMESTAMP '%s', 'MS','MS_CONTRACT','OVERLAP',
+           TO_JSON_STRING(STRUCT(TERRITORY_ID,CONTRACT_ID)),
+           CONCAT('from=',CAST(FROM_DT AS STRING))
+    FROM ordered
+    WHERE NEXT_DT IS NOT NULL AND TO_DT >= NEXT_DT""",
+    cms_ds, ts);
+
+  /* 1-C  Zero-day rows (FROM = TO) */
+  EXECUTE IMMEDIATE FORMAT("""
+    INSERT INTO dq.DQ_ISSUES
+    SELECT TIMESTAMP '%s','MS','MS_CONTRACT','ZERO_DAY',
+           TO_JSON_STRING(STRUCT(TERRITORY_ID,CONTRACT_ID)),
+           CAST(EFFECTIVE_FROM_DATE AS STRING)
+    FROM `%s.CMS_CONTRACT`
+    WHERE EFFECTIVE_FROM_DATE = EFFECTIVE_TO_DATE""",
+    ts, cms_ds);
+
+  /* 1-D  Orphan child rows (generic loop) */
+  DECLARE child ARRAY<STRING> DEFAULT [
+    'CMS_ARREARS','CMS_SUSPENSE','CMS_EVENT_NOTE',
+    'MS_CONTRACT_NOTE','MS_CUSTOMISABLE_FLAG','MS_ASSET_DISPOSAL'
+  ];
+  DECLARE t STRING;
+  FOR t IN UNNEST(child) DO
+    EXECUTE IMMEDIATE FORMAT("""
+      INSERT INTO dq.DQ_ISSUES
+      SELECT TIMESTAMP '%s','MS','%s','ORPHAN_CHILD',
+             TO_JSON_STRING(STRUCT(TERRITORY_ID,CONTRACT_ID)),
+             NULL
+      FROM `%s.%s` c
+      LEFT JOIN `%s.CMS_CONTRACT` p
+             USING (TERRITORY_ID,CONTRACT_ID)
+      WHERE p.CONTRACT_ID IS NULL""",
+      ts, t, cms_ds, t, cms_ds);
+  END FOR;
+
+  /* ========= 2. FMO-only validations ========================= */
+
+  /* 2-A  Duplicate open application rows */
+  INSERT INTO dq.DQ_ISSUES
+  SELECT ts,'FMO','MO_APPLICATION','DUP_OPEN',
+         TO_JSON_STRING(STRUCT(APPLICATION_ID)),
+         CONCAT('open_cnt=',open_cnt)
+  FROM (
+    SELECT APPLICATION_ID, COUNT(*) AS open_cnt
+    FROM  EXECUTE IMMEDIATE FORMAT("""
+            SELECT * FROM `%s.MO_APPLICATION`
+            WHERE EFFECTIVE_TO_DATE = DATETIME '9999-12-31 23:59:59'""",
+            fmo_ds)
+    GROUP BY 1 HAVING open_cnt>1
+  );
+
+  /* 2-B  Overlaps in MO_APPLICATION */
+  EXECUTE IMMEDIATE FORMAT("""
+    WITH ordered AS (
+      SELECT APPLICATION_ID,
+             EFFECTIVE_FROM_DATE FROM_DT, EFFECTIVE_TO_DATE TO_DT,
+             LEAD(EFFECTIVE_FROM_DATE) OVER
+               (PARTITION BY APPLICATION_ID
+                ORDER BY EFFECTIVE_FROM_DATE DESC) AS NEXT_DT
+      FROM `%s.MO_APPLICATION`)
+    INSERT INTO dq.DQ_ISSUES
+    SELECT TIMESTAMP '%s','MO','MO_APPLICATION','OVERLAP',
+           TO_JSON_STRING(STRUCT(APPLICATION_ID)),
+           CAST(FROM_DT AS STRING)
+    FROM ordered
+    WHERE NEXT_DT IS NOT NULL AND TO_DT >= NEXT_DT""",
+    fmo_ds, ts);
+
+  /* ========= 3. Cross-system validations ==================== */
+
+  /* 3-A  CMS contract with no matching FMO application */
+  EXECUTE IMMEDIATE FORMAT("""
+    INSERT INTO dq.DQ_ISSUES
+    SELECT TIMESTAMP '%s','X-SYS','CMS_CONTRACT','MISSING_IN_FMO',
+           TO_JSON_STRING(STRUCT(TERRITORY_ID,CONTRACT_ID)),
+           EXTERNAL_CONTRACT_ID
+    FROM `%s.CMS_CONTRACT` c
+    LEFT JOIN `%s.MO_APPLICATION` a
+           ON a.APPLICATION_ID = c.EXTERNAL_CONTRACT_ID
+    WHERE a.APPLICATION_ID IS NULL""",
+    ts, cms_ds, fmo_ds);
+
+  /* 3-B  CMS_ASSET_DISPOSAL component missing in FMO */
+  EXECUTE IMMEDIATE FORMAT("""
+    INSERT INTO dq.DQ_ISSUES
+    SELECT TIMESTAMP '%s','X-SYS','ASSET_DISPOSAL','COMPONENT_MISSING',
+           TO_JSON_STRING(STRUCT(TERRITORY_ID,CONTRACT_ID,COMPONENT_ID)),
+           NULL
+    FROM `%s.CMS_ASSET_DISPOSAL` d
+    LEFT JOIN `%s.MO_COMPONENT` f
+           ON f.COMPONENT_ID = d.COMPONENT_ID
+    WHERE f.COMPONENT_ID IS NULL""",
+    ts, cms_ds, fmo_ds);
+
+  /* ========= 4. Return short summary ======================== */
+  SELECT
+    issue_type,
+    COUNT(*) AS bad_rows
+  FROM dq.DQ_ISSUES
+  WHERE run_ts = ts
+  GROUP BY issue_type
+  ORDER BY bad_rows DESC;
+
+END;
+
+
+++++++++++
+
+-- Run after your test / batch load
+CALL dq.validate_backoffice_all('cms', 'fmo');
+
+-- See full detail
+SELECT * FROM dq.DQ_ISSUES ORDER BY run_ts DESC LIMIT 100;
+
+
+++++++
+A Contracts must exist for every child row
+sql
+Copy
+Edit
+SELECT *
+FROM `cms.CMS_ARREARS` a
+LEFT JOIN `cms.CMS_CONTRACT` c
+  USING (TERRITORY_ID, CONTRACT_ID)
+WHERE c.CONTRACT_ID IS NULL;
+(Repeat for each child table: CMS_SUSPENSE, CMS_EVENT_NOTE, …)
+
+
+Duplicate “open” contract rows (if SCD-2 fields exist)
+sql
+Copy
+Edit
+SELECT TERRITORY_ID, CONTRACT_ID, COUNT(*) AS open_cnt
+FROM   `cms.CMS_CONTRACT`
+WHERE  EFFECTIVE_TO_DATE = DATETIME '9999-12-31 23:59:59'
+GROUP  BY 1,2
+HAVING open_cnt > 1;
+
+
+Overlap-check per contract
+WITH ordered AS (
+  SELECT
+    TERRITORY_ID, CONTRACT_ID,
+    EFFECTIVE_FROM_DATE AS from_dt,
+    EFFECTIVE_TO_DATE   AS to_dt,
+    LEAD(EFFECTIVE_FROM_DATE) OVER (PARTITION BY TERRITORY_ID, CONTRACT_ID
+                                    ORDER BY EFFECTIVE_FROM_DATE DESC) AS next_from
+  FROM `cms.CMS_CONTRACT`
+)
+SELECT *
+FROM   ordered
+WHERE  next_from IS NOT NULL   -- skip open record
+  AND  to_dt >= next_from;     -- overlap
+
+
+
++++++++++++
+
+CMS table & col	FMO table & col	Business meaning
+CMS_CONTRACT.EXTERNAL_CONTRACT_ID	FMO_APPLICATION.APPLICATION_ID (or FMO_QUOTE.QUOTE_ID)	Contract created from the application/quote
+CMS_ASSET_DISPOSAL.COMPONENT_ID	FMO_COMPONENT.COMPONENT_ID	Component sold/disposed later
+CMS_CONTRACT.TERRITORY_ID	FMO_APPLICATION.CHANNEL_ID (example mapping)	Same geography / business unit
+
+
+
+Every CMS contract must relate to an FMO application
+sql
+Copy
+Edit
+SELECT c.*
+FROM   `cms.CMS_CONTRACT` c
+LEFT   JOIN `fmo.FMO_APPLICATION` a
+       ON a.APPLICATION_ID = c.EXTERNAL_CONTRACT_ID
+WHERE  a.APPLICATION_ID IS NULL;
+
+
+
+ Orphan components
+sql
+Copy
+Edit
+SELECT d.*
+FROM   `cms.CMS_ASSET_DISPOSAL` d
+LEFT   JOIN `fmo.FMO_COMPONENT`  f
+       ON  f.COMPONENT_ID = d.COMPONENT_ID
+WHERE  f.COMPONENT_ID IS NULL;
+
+
+Territory vs Channel mismatch (optional)
+sql
+Copy
+Edit
+SELECT c.CONTRACT_ID, c.TERRITORY_ID, a.CHANNEL_ID
+FROM   `cms.CMS_CONTRACT` c
+JOIN   `fmo.FMO_APPLICATION` a
+       ON a.APPLICATION_ID = c.EXTERNAL_CONTRACT_ID
+WHERE  CAST(c.TERRITORY_ID AS STRING) != CAST(a.CHANNEL_ID AS STRING);
+
+
+++++
+
+
+data-quality checks after loading
+Check	Quick query
+No duplicate “open” rows in SCD tables	SELECT CONTRACT_ID, COUNT(*) FROM CMS_CONTRACT WHERE END_DATE='9999-12-31' GROUP BY … HAVING COUNT(*)>1
+All child tables have a matching contract	SELECT child.* FROM CMS_ARREARS child LEFT JOIN CMS_CONTRACT c USING (TERRITORY_ID,CONTRACT_ID) WHERE c.CONTRACT_ID IS NULL
+
+
+
+no inbound FKs — safest to load first)
+
+FMO_BRAND
+
+FMO_CHANNEL
+
+FMO_DOCUMENT_ATTRIBUTES
+
+FMO_PLAN
+
+FMO_COMMISSION_PACKAGE
+
+FMO_SUPPLIER (if you need components that reference suppliers)
+
+FMO_CATALOG_DETAIL  → then FMO_CATALOG_DETAIL_VALUES
+
+FMO_CUSTOMER
+
+FMO_DEALER
+
+FMO_SALES_PERSON
+
+
+FMO_DEALER_HIERARCHY	FMO_DEALER	Load after all dealers exist.
+
+
+Table	Depends on (FK)
+FMO_APPLICATION	FMO_BRAND, FMO_CHANNEL, FMO_DEALER, FMO_CUSTOMER, FMO_SALES_PERSON
+
+
+Immediate children of APPLICATION
+Table	Key dependency
+FMO_APPLICATION_STATUS_HISTORY	FMO_APPLICATION
+FMO_WORK_QUEUE_HISTORY	FMO_APPLICATION
+FMO_COMMISSION_SUBSIDY	FMO_APPLICATION
+FMO_NOTES	FMO_APPLICATION
+
+
+post load checks:
+
+SELECT
+  (SELECT COUNT(*) FROM FMO_APPLICATION)  AS app_cnt,
+  (SELECT COUNT(*) FROM FMO_QUOTE)        AS quote_cnt,
+  (SELECT COUNT(*) FROM FMO_COMPONENT)    AS comp_cnt;
+  
+  
+  +++++++++++++
+  
+  
+  CREATE TABLE IF NOT EXISTS `dq_metadata.scd2_config`
+(
+  table_name     STRING,           -- fully-qualified:  project.dataset.table
+  key_cols       ARRAY<STRING>,    -- 1-or-more column names that make the key
+  from_col       STRING,           -- EFFECTIVE_FROM column
+  to_col         STRING            -- EFFECTIVE_TO column
+);
+
+INSERT INTO `dq_metadata.scd2_config` VALUES
+  ('src_bi.FMO_APPLICATION', ['APPLICATION_ID'], 'EFFECTIVE_FROM_DATE', 'EFFECTIVE_TO_DATE'),
+  ('src_bi.FMO_CUSTOMER'   , ['CUSTOMER_ID']   , 'EFFECTIVE_FROM_DATE', 'EFFECTIVE_TO_DATE'),
+  ('src_bi.FMO_ASSET'      , ['ASSET_ID']      , 'FROM_TS'           , 'TO_TS');   -- example with different col names
+
+
+
+CREATE OR REPLACE PROCEDURE dq_metadata.validate_scd2_generic()
+BEGIN
+  DECLARE cfg RECORD;
+  DECLARE qry STRING;
+
+  FOR cfg IN (
+    SELECT *
+    FROM `dq_metadata.scd2_config`
+  ) DO
+
+    -- Build the comma-separated key for PARTITION BY / ORDER BY
+    DECLARE key_list   STRING  DEFAULT ARRAY_TO_STRING(cfg.key_cols, ', ');
+    DECLARE key_select STRING  DEFAULT ARRAY_TO_STRING(
+                                  (SELECT ARRAY_AGG(FORMAT('%s', col) ORDER BY col)
+                                   FROM UNNEST(cfg.key_cols) col), ', ');
+    DECLARE key_join   STRING  DEFAULT ARRAY_TO_STRING(
+                                  (SELECT ARRAY_AGG(FORMAT('t.%1$s = s.%1$s', col) ORDER BY col)
+                                   FROM UNNEST(cfg.key_cols) col), ' AND ');
+
+    SET qry = FORMAT("""
+    --------------------------------------------------
+    -- %s  (auto-generated SCD-2 validation)
+    --------------------------------------------------
+    WITH ordered AS (
+      SELECT
+        %s,
+        %s   AS from_dt,
+        %s   AS to_dt,
+
+        LEAD(%s) OVER (PARTITION BY %s ORDER BY %s DESC)  AS next_from_dt,
+        ROW_NUMBER()  OVER (PARTITION BY %s ORDER BY %s DESC)  AS rn_latest,
+        COUNTIF(%s = DATETIME '9999-12-31 23:59:59')
+            OVER (PARTITION BY %s)                        AS open_row_cnt
+      FROM `%s`
+    ),
+
+    checks AS (
+      SELECT
+        %s,
+        from_dt,
+        to_dt,
+        next_from_dt,
+
+        ARRAY_CONCAT(
+          -- duplicate open rows
+          CASE WHEN open_row_cnt > 1 AND to_dt = DATETIME '9999-12-31 23:59:59'
+               THEN ['BAD_ACTIVE_DUPLICATE'] ELSE [] END,
+
+          -- overlaps
+          CASE WHEN rn_latest > 1 AND to_dt >= next_from_dt
+               THEN ['OVERLAP']              ELSE [] END,
+
+          -- zero-day (comment out if allowed)
+          CASE WHEN from_dt = to_dt
+               THEN ['ZERO_DAY']             ELSE [] END
+        ) AS issues
+      FROM ordered
+    )
+
+    -- write issues into a standard DQ table
+    INSERT INTO `dq_metadata.DQ_SCD2_ISSUES`
+    SELECT
+      CURRENT_TIMESTAMP()         AS run_ts,
+      '%s'                        AS table_name,
+      TO_JSON_STRING(STRUCT(%s))  AS key_json,         -- keeps multi-col keys
+      from_dt, to_dt,
+      issues
+    FROM checks
+    WHERE ARRAY_LENGTH(issues) > 0;
+    """,
+    --------------------------------------------------
+    cfg.table_name,          -- banner
+    key_select,              -- SELECT key…
+    cfg.from_col, cfg.to_col,
+    cfg.from_col, key_list,  -- LEAD / PARTITION
+    cfg.from_col,
+    key_list, cfg.from_col,
+    cfg.to_col, key_list,
+    cfg.table_name,
+    key_select,              -- SELECT again inside checks
+    cfg.table_name,
+    key_select               -- key_json
+    );
+
+    EXECUTE IMMEDIATE qry;
+
+  END FOR;
+END;
+
+
+
+CALL dq_metadata.validate_scd2_generic();
+
+
+SELECT *
+FROM dq_metadata.DQ_SCD2_ISSUES
+ORDER BY run_ts DESC, table_name;
+
+
+
