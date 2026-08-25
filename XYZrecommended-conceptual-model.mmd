@@ -1,0 +1,38 @@
+flowchart TB
+    PARTY["PARTY<br/>A person or organisation relevant to XYZ"]
+    WORKER["WORKER<br/>A Party with a working relationship with XYZ"]
+    EMPLOYMENT["EMPLOYMENT<br/>The contractual working relationship between a Worker and XYZ"]
+    ENROLMENT["PAYROLL ENROLMENT<br/>Registers an eligible Employment in a Payroll"]
+
+    INPUT["PAYROLL INPUT<br/>A pay-affecting amount, instruction, time value or event"]
+    PERIOD["PAYROLL PERIOD<br/>The time interval for which payroll is calculated"]
+    RUN["PAYROLL RUN<br/>An execution of payroll calculation for a Payroll Period"]
+    RESULT["PAYROLL RESULT<br/>The calculated earnings, deductions, contributions and net pay"]
+
+    PAYMENT["PAYMENT<br/>Settlement of approved net pay"]
+    COST["COST ALLOCATION<br/>Distribution of payroll expenditure to Finance structures"]
+    PAYSLIP["PAYSLIP<br/>Worker-facing statement of an approved Payroll Result"]
+    SUBMISSION["STATUTORY SUBMISSION<br/>Payroll information reported to an authorised body"]
+
+    PARTY -->|"acts as 0..1"| WORKER
+    WORKER -->|"has 0..*"| EMPLOYMENT
+    EMPLOYMENT -->|"has 0..*"| ENROLMENT
+    ENROLMENT -->|"receives 0..*"| INPUT
+    PERIOD -->|"schedules 0..*"| RUN
+    INPUT -->|"is used by 1..*"| RUN
+    RUN -->|"produces 1..*"| RESULT
+    ENROLMENT -->|"receives 0..*"| RESULT
+    RESULT -->|"authorises 0..*"| PAYMENT
+    RESULT -->|"produces 0..*"| COST
+    RESULT -->|"generates 0..1"| PAYSLIP
+    RESULT -->|"supports 0..*"| SUBMISSION
+
+    classDef blue fill:#dce8f5,stroke:#5b79a7,stroke-width:2px,color:#253041;
+    classDef yellow fill:#f3e8b5,stroke:#b99a37,stroke-width:2px,color:#253041;
+    classDef green fill:#dcefcf,stroke:#6b9b52,stroke-width:2px,color:#253041;
+    classDef purple fill:#e7dcf3,stroke:#856aa9,stroke-width:2px,color:#253041;
+
+    class PARTY,RUN,COST blue;
+    class EMPLOYMENT,PERIOD,PAYSLIP yellow;
+    class WORKER,INPUT,PAYMENT green;
+    class ENROLMENT,RESULT,SUBMISSION purple;

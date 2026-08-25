@@ -1,0 +1,338 @@
+Create a fully editable native draw.io conceptual data model for a generic Payroll Domain.
+
+## Required deliverable
+
+Create this file directly in the current workspace:
+
+`payroll-conceptual-model-crows-foot-editable.drawio`
+
+Do not return only an explanation or a Mermaid diagram. Write the actual `.drawio` file.
+
+The file must:
+
+* Use a valid, uncompressed draw.io `mxfile` and `mxGraphModel` structure.
+* Open successfully in app.diagrams.net.
+* Contain native editable draw.io shapes and connectors.
+* Allow every concept box, definition, relationship and label to be edited independently.
+* Use Crow’s Foot data-modelling notation.
+* Contain no raster images or embedded screenshots.
+* Contain no XYZ wording.
+* Use generic Payroll, Workforce and Finance terminology.
+* Be suitable for importing into Confluence using the draw.io/diagrams.net plugin.
+
+## Model title
+
+`Payroll Domain — Conceptual Data Model`
+
+Subtitle:
+
+`Business concepts, definitions and relationships using Crow's Foot notation`
+
+## Visual style
+
+Use a clean enterprise data-modelling format.
+
+Each business concept must have:
+
+* A rectangular box.
+* A coloured header containing the uppercase concept name.
+* A white body containing the business definition.
+* A two-pixel coloured border.
+* Arial font.
+* No gradients, shadows, icons or decorative imagery.
+* Square or minimally rounded corners.
+
+Use these colours:
+
+* Blue header: `#DCE8F5`
+* Blue border: `#5B79A7`
+* Green header: `#DCEFCF`
+* Green border: `#6B9B52`
+* Yellow header: `#F3E8B5`
+* Yellow border: `#B99A37`
+* Purple header: `#E7DCF3`
+* Purple border: `#856AA9`
+* Body: `#FFFFFF`
+* Primary text: `#253041`
+* Secondary text: `#303846`
+* Relationship lines: `#4B5563`
+* Canvas: `#FBFCFD`
+
+## Required business concepts
+
+### WORKER
+
+Colour: Blue.
+
+Definition:
+
+`Represents a person who has a working relationship with an organisation. Workforce owns the worker identity and core details; Payroll references the worker.`
+
+### EMPLOYMENT
+
+Colour: Yellow.
+
+Definition:
+
+`Represents the contractual working relationship between a Worker and an employing organisation, including effective dates and status. One Worker may have multiple Employments.`
+
+### PAYROLL ENROLMENT
+
+Colour: Purple.
+
+Definition:
+
+`Connects an eligible Employment to a payroll arrangement. It determines when and how that Employment is included in payroll processing.`
+
+### PAYROLL INPUT
+
+Colour: Green.
+
+Definition:
+
+`Represents an amount, time value, instruction or event used to calculate pay. Examples include salary, overtime, allowance, absence, tax, pension and retrospective adjustment.`
+
+### PAYROLL RUN
+
+Colour: Blue.
+
+Definition:
+
+`Represents an execution of payroll calculation for a defined Payroll Period. It applies payroll rules and inputs to eligible Payroll Enrolments and records processing status, exceptions and approval.`
+
+### PAYROLL PERIOD
+
+Colour: Yellow.
+
+Definition:
+
+`Defines the time interval for which pay is calculated and reported, including period start, period end, cut-off and payment date.`
+
+### PAYROLL RESULT
+
+Colour: Purple.
+
+Definition:
+
+`Represents the calculated payroll outcome for a Payroll Enrolment and Payroll Run, including earnings, deductions, employer contributions, gross pay, balances and net pay.`
+
+### PAYMENT
+
+Colour: Green.
+
+Definition:
+
+`Represents settlement of approved net pay, including payment instruction, amount, method, date and status. Failed or reversed Payments remain traceable.`
+
+### COST ALLOCATION
+
+Colour: Blue.
+
+Definition:
+
+`Represents distribution of payroll expenditure to Finance structures such as Cost Centre, Organisation Unit or Programme for accounting and reconciliation.`
+
+### PAYROLL REPORTING
+
+Colour: Yellow.
+
+Definition:
+
+`Represents outputs derived from approved Payroll Results, including payslips, reconciliation and statutory submissions to authorised external organisations.`
+
+## Layout
+
+Use a landscape layout with four levels.
+
+### Level 1
+
+Place horizontally:
+
+`WORKER → EMPLOYMENT → PAYROLL ENROLMENT`
+
+### Level 2
+
+Place:
+
+* Payroll Input on the left.
+* Payroll Run in the centre.
+* Payroll Period on the right.
+
+Payroll Enrolment must connect down to Payroll Run.
+
+### Level 3
+
+Place Payroll Result centrally below Payroll Run.
+
+Payroll Result must be connected to both Payroll Run and Payroll Enrolment.
+
+### Level 4
+
+Place horizontally:
+
+* Payment on the left.
+* Cost Allocation in the centre.
+* Payroll Reporting on the right.
+
+All three must connect to Payroll Result.
+
+Use straight or orthogonal connectors. Avoid line crossings and text overlap.
+
+## Crow’s Foot relationships
+
+Use draw.io Entity Relationship arrow styles such as:
+
+* `ERone`
+* `ERzeroToOne`
+* `ERoneToMany`
+* `ERzeroToMany`
+
+Use Crow’s Foot markers at both ends where required. Do not use ordinary triangular arrows as a substitute.
+
+Create these relationships:
+
+### Worker to Employment
+
+Business sentence:
+
+`A Worker has one or more Employments. Each Employment belongs to exactly one Worker.`
+
+Source marker at Worker: exactly one.
+
+Target marker at Employment: one or many.
+
+Relationship label: `has`
+
+### Employment to Payroll Enrolment
+
+Business sentence:
+
+`An Employment may have zero or many Payroll Enrolments. Each Payroll Enrolment belongs to exactly one Employment.`
+
+Source marker at Employment: exactly one.
+
+Target marker at Payroll Enrolment: zero or many.
+
+Relationship label: `has`
+
+### Payroll Enrolment to Payroll Run
+
+Business sentence:
+
+`A Payroll Enrolment may be processed by many Payroll Runs, and a Payroll Run processes many Payroll Enrolments.`
+
+Use zero-or-many notation at both ends.
+
+Relationship label: `is processed by`
+
+### Payroll Input to Payroll Run
+
+Business sentence:
+
+`A Payroll Run may use many Payroll Inputs, and an input may be used during original or repeat processing.`
+
+Use zero-or-many notation at both ends.
+
+Relationship label: `is used by`
+
+### Payroll Period to Payroll Run
+
+Business sentence:
+
+`A Payroll Period may schedule zero or many Payroll Runs. Each Payroll Run belongs to exactly one Payroll Period.`
+
+Source marker at Payroll Period: exactly one.
+
+Target marker at Payroll Run: zero or many.
+
+Relationship label: `schedules`
+
+### Payroll Run to Payroll Result
+
+Business sentence:
+
+`A Payroll Run produces one or many Payroll Results. Each Payroll Result is produced by exactly one Payroll Run.`
+
+Source marker at Payroll Run: exactly one.
+
+Target marker at Payroll Result: one or many.
+
+Relationship label: `produces`
+
+### Payroll Enrolment to Payroll Result
+
+Business sentence:
+
+`A Payroll Enrolment may receive zero or many Payroll Results. Each Payroll Result belongs to exactly one Payroll Enrolment.`
+
+Source marker at Payroll Enrolment: exactly one.
+
+Target marker at Payroll Result: zero or many.
+
+Relationship label: `receives`
+
+### Payroll Result to Payment
+
+Business sentence:
+
+`A Payroll Result may authorise zero or many Payments. Each Payment must reference exactly one Payroll Result.`
+
+Source marker at Payroll Result: exactly one.
+
+Target marker at Payment: zero or many.
+
+Relationship label: `authorises`
+
+### Payroll Result to Cost Allocation
+
+Business sentence:
+
+`A Payroll Result may produce zero or many Cost Allocations. Each Cost Allocation references exactly one Payroll Result.`
+
+Source marker at Payroll Result: exactly one.
+
+Target marker at Cost Allocation: zero or many.
+
+Relationship label: `produces`
+
+### Payroll Result to Payroll Reporting
+
+Business sentence:
+
+`Payroll Results support Payroll Reporting outputs. A report or statutory submission may contain information from many Payroll Results.`
+
+Use suitable many-to-many notation.
+
+Relationship label: `supports`
+
+## Legend
+
+Add an editable legend at the bottom:
+
+* `|` = exactly one
+* `O|` = zero or one
+* `|<` = one or many
+* `O<` = zero or many
+
+## Scope note
+
+Add this note:
+
+`Workforce owns Worker and Employment. Payroll references them. Finance owns the structures referenced by Cost Allocation.`
+
+## Validation requirements
+
+After creating the file:
+
+1. Parse it using Python `xml.etree.ElementTree`.
+2. Confirm the root element is `mxfile`.
+3. Confirm it contains one `diagram`.
+4. Confirm all ten required concepts exist.
+5. Confirm all ten relationships exist.
+6. Confirm all relationship styles contain Entity Relationship arrow markers.
+7. Confirm the text contains no occurrence of `XYZ`, case-insensitively.
+8. Confirm no concept definitions or relationship labels overlap by reviewing the coordinates and connector waypoints.
+9. If any validation fails, correct the file and rerun validation.
+10. Report the validation results and the final file path.
+
+Do not replace the requested native `.drawio` output with SVG, PNG, Mermaid or PlantUML.
