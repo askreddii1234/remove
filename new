@@ -1,0 +1,61 @@
+Enterprise concept     Conceptual concept      Logical entity
+──────────────────────────────────────────────────────────────
+Party                  Worker                  Worker
+Agreement              Employment              Employment
+Agreement              Payroll participation   Payroll Enrolment
+Time Period            Pay cycle               Payroll Period
+Classification         Pay component            Payroll Element
+Event                  Payroll processing       Payroll Run
+Asset                  Payroll outcome          Payroll Result
+Asset                  Payment                  Payment Instruction
+Event                  Payment execution        Payment Transaction
+Document               Payroll communication    Payslip
+
+
+
+
+I have reviewed Payroll against our existing Enterprise Conceptual Data Model. The current approved concepts appear to be Party, Location, Episode, Event and Laboratory Scientific Asset.
+
+Payroll aligns naturally with Party, Location and Event. Episode may provisionally represent an employment or payroll-participation episode, although this needs semantic validation. Laboratory Scientific Asset has no identified Payroll application, so I have not forced a relationship.
+
+The exercise also identified genuine gaps. Employment agreements, payroll periods, payroll classifications, payroll results and payslips cannot be represented accurately using only the existing concepts. I have therefore documented Agreement, Time Period, Classification, Information Asset and Document as candidate enterprise extensions—not approved concepts.
+
+I am seeking guidance on whether we should keep these concepts within the Payroll domain model or propose them as reusable enterprise concepts through the architecture governance process.”
+
+How to describe the models
+Model	Purpose	Current status
+Existing enterprise conceptual model	Organisation-wide common language	Approved baseline, subject to confirmation
+Payroll alignment view	Shows how Payroll uses existing enterprise concepts	Ready for architecture review
+Payroll conceptual model	Defines Payroll scope, vocabulary and major business concepts	Proposed; needs stakeholder validation
+Payroll logical relationship model	Decomposes Payroll into entities and cardinalities	Initial relationship view—not yet a complete logical model
+Candidate enterprise extensions	Identifies concepts the baseline cannot represent cleanly	Requires governance decision
+
+Avoid saying, “I have completed the enterprise and logical models.” Say:
+
+“I have produced first-pass models for validation. The enterprise alignment is based on the current baseline, the Payroll conceptual model defines business scope, and the logical relationship view is an initial decomposition. Business identifiers, attributes, rules, ownership and source mappings remain to be completed.”
+
+Decisions to request
+
+Ask your  of Architecture:
+
+Is the screenshot the current approved Enterprise Conceptual Data Model?
+Is Episode intended to support employment or workforce participation?
+Should Agreement, Time Period, Classification, Information Asset and Document be proposed as enterprise concepts?
+What governance process approves new or amended enterprise concepts?
+Who must validate the Payroll conceptual model—Payroll, Workforce, Finance, HR and Security?
+What modelling standards and repository should be used?
+Should the logical model include ownership, sensitivity, identifiers and reference-data standards?
+Updated editable diagram
+
+Download the updated Payroll Enterprise Conceptual Model
+
+It contains:
+
+Page 1 — current enterprise alignment
+Page 2 — candidate enterprise extensions
+Matching coloured headers, definition panels and borders
+Editable Crow’s Foot connectors and relationship labels
+Existing versus proposed concepts clearly distinguished
+Laboratory Scientific Asset explicitly shown as not applicable to Payroll
+
+Use Page 1 as the current-state position and Page 2 to facilitate the governance discussion.
