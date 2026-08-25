@@ -1,0 +1,260 @@
+Create a professional, editable conceptual data model for the **xyz Payroll Domain**.
+
+## Objective
+
+Generate a business-led, technology-independent conceptual model suitable for:
+
+* xyz Data Architecture and Standards review
+* Confluence publication
+* Stakeholder validation
+* Import into draw.io
+* Future logical data modelling
+
+Do not create database tables, columns, APIs or application-specific objects. This is a conceptual data model, not a physical model.
+
+## Required output files
+
+Create:
+
+1. `xyz-payroll-conceptual-model.mmd`
+
+   * Machine-readable Mermaid source
+   * Compatible with Mermaid Live Editor and GitHub Markdown
+
+2. `xyz-payroll-conceptual-model.svg`
+
+   * Editable SVG
+   * Suitable for Confluence and draw.io
+   * Must visually resemble an enterprise conceptual model
+
+3. `xyz-payroll-conceptual-model.md`
+
+   * Contains the model purpose, concept definitions, relationship catalogue, assumptions and validation questions
+   * Embeds the Mermaid diagram
+
+## Diagram appearance
+
+Use a clean enterprise modelling style:
+
+* White or very light background
+* Rectangular concept boxes
+* Thin coloured strokes
+* Separate coloured header inside every box
+* White body containing a short definition
+* Straight or orthogonal relationship lines
+* Arrowheads showing relationship direction
+* Relationship verbs and cardinalities displayed on the lines
+* No icons, gradients, shadows or decorative graphics
+* Use consistent spacing and alignment
+* Use a landscape layout
+* Ensure all text is readable without overlapping lines
+
+Use these pastel colours:
+
+* Blue: header `#DCE8F5`, border `#5B79A7`
+* Green: header `#DCEFCF`, border `#6B9B52`
+* Yellow: header `#F3E8B5`, border `#B99A37`
+* Purple: header `#E7DCF3`, border `#856AA9`
+* Body: `#FFFFFF`
+* Text: `#253041`
+* Relationship stroke: `#4B5563`
+
+## Title
+
+`xyz Payroll Domain — Recommended Conceptual Data Model`
+
+Subtitle:
+
+`Business-led, technology-independent model — proposed for Workforce, Payroll and Finance stakeholder validation`
+
+## Required business concepts
+
+### PARTY
+
+Definition:
+
+`Represents a person or organisation relevant to xyz. In Payroll, a Party may act as a Worker, Employer, Payee, Authority, Bank or Pension Provider.`
+
+Colour: Blue.
+
+### WORKER
+
+Definition:
+
+`Represents a Party who has a working relationship with xyz. Workforce owns the worker identity and core details; Payroll references the worker.`
+
+Colour: Green.
+
+### EMPLOYMENT
+
+Definition:
+
+`Represents the contractual working relationship between a Worker and xyz, including its effective dates and status. One Worker may have multiple Employments.`
+
+Colour: Yellow.
+
+### PAYROLL ENROLMENT
+
+Definition:
+
+`Connects an eligible Employment to a payroll arrangement. It determines when and how the Employment is included in payroll processing.`
+
+Colour: Purple.
+
+### PAYROLL INPUT
+
+Definition:
+
+`Represents an amount, time value, instruction or event used to calculate pay. Examples include salary, overtime, allowance, absence, tax, pension and retrospective adjustment.`
+
+Colour: Green.
+
+### PAYROLL PERIOD
+
+Definition:
+
+`Defines the time interval for which pay is calculated and reported, including period start, period end, cut-off and payment dates.`
+
+Colour: Yellow.
+
+### PAYROLL RUN
+
+Definition:
+
+`Represents an execution of payroll calculation for a defined Payroll Period. It applies payroll rules and inputs to eligible Payroll Enrolments.`
+
+Colour: Blue.
+
+### PAYROLL RESULT
+
+Definition:
+
+`Represents the calculated payroll outcome for a Payroll Enrolment and Payroll Run, including earnings, deductions, employer contributions, gross pay, balances and net pay.`
+
+Colour: Purple.
+
+### PAYMENT
+
+Definition:
+
+`Represents settlement of approved net pay to a Worker, including instruction, amount, method, date and status. Failed or reversed Payments remain traceable.`
+
+Colour: Green.
+
+### COST ALLOCATION
+
+Definition:
+
+`Represents distribution of payroll expenditure to Finance structures such as Cost Centre, Organisation Unit or Programme for accounting and reconciliation.`
+
+Colour: Blue.
+
+### PAYSLIP
+
+Definition:
+
+`Represents the Worker-facing statement derived from an approved Payroll Result, presenting earnings, deductions, employer contributions and net pay.`
+
+Colour: Yellow.
+
+### STATUTORY SUBMISSION
+
+Definition:
+
+`Represents payroll information reported to an authorised external organisation, together with submission status and response.`
+
+Colour: Purple.
+
+## Required relationships
+
+Create and label the following relationships:
+
+| Source            | Relationship | Target               | Target cardinality |
+| ----------------- | ------------ | -------------------- | ------------------ |
+| Party             | acts as      | Worker               | `0..1`             |
+| Worker            | has          | Employment           | `0..*`             |
+| Employment        | has          | Payroll Enrolment    | `0..*`             |
+| Payroll Enrolment | receives     | Payroll Input        | `0..*`             |
+| Payroll Period    | schedules    | Payroll Run          | `0..*`             |
+| Payroll Input     | is used by   | Payroll Run          | `1..*`             |
+| Payroll Run       | produces     | Payroll Result       | `1..*`             |
+| Payroll Enrolment | receives     | Payroll Result       | `0..*`             |
+| Payroll Result    | authorises   | Payment              | `0..*`             |
+| Payroll Result    | produces     | Cost Allocation      | `0..*`             |
+| Payroll Result    | generates    | Payslip              | `0..1`             |
+| Payroll Result    | supports     | Statutory Submission | `0..*`             |
+
+Relationships must be readable as business sentences, for example:
+
+`A Payroll Run produces one or more Payroll Results.`
+
+Do not use unexplained self-referencing relationships.
+
+## Suggested layout
+
+Use four levels:
+
+### Level 1 — Workforce context
+
+`PARTY → WORKER → EMPLOYMENT → PAYROLL ENROLMENT`
+
+### Level 2 — Payroll calculation
+
+Place:
+
+* Payroll Input on the left
+* Payroll Run in the centre
+* Payroll Period on the right
+
+Payroll Enrolment should connect to Payroll Run as the eligible population.
+
+### Level 3 — Central result
+
+Place `PAYROLL RESULT` centrally below Payroll Run.
+
+Payroll Result must connect to both Payroll Run and Payroll Enrolment.
+
+### Level 4 — Payroll outputs
+
+Place horizontally:
+
+* Payment
+* Cost Allocation
+* Payslip
+* Statutory Submission
+
+Connect each output to Payroll Result.
+
+## Ownership note
+
+Add this note beneath the diagram:
+
+`Workforce owns Party, Worker and Employment. Payroll owns Payroll Enrolment, Payroll Input, Payroll Run and Payroll Result. Finance owns the financial structures referenced by Cost Allocation.`
+
+## Validation note
+
+Add:
+
+`The model and cardinalities are proposed and must be validated against  processes and xyz business rules, particularly multiple Employments, supplementary Payroll Runs, payment retries, retrospective corrections and statutory reporting.`
+
+## Modelling rules
+
+* Use singular names for business concepts.
+* Use uppercase concept names in the diagram.
+* Use business language rather than source-system table names.
+* Do not introduce `Financial Asset`; earnings, deductions and net pay belong within Payroll Result.
+* Do not use generic `Event` as a replacement for Payroll Run.
+* Do not connect Location directly to Payroll Result or Payment.
+* Do not duplicate Worker or Employment inside the Payroll domain; they are referenced from Workforce.
+* Do not invent -specific fields or unconfirmed xyz rules.
+* Keep definitions concise and readable.
+* Check every relationship direction and cardinality.
+* Ensure SVG text does not overlap boxes or relationship lines.
+
+After generating the files, review them and report:
+
+1. Files created
+2. Concepts included
+3. Relationships and cardinalities
+4. Assumptions requiring xyz validation
+5. Any rendering or layout limitations
