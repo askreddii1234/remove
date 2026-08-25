@@ -1,0 +1,56 @@
+<mxfile host="app.diagrams.net" modified="2026-08-25T12:00:00.000Z" agent="ChatGPT" version="24.7.17">
+  <diagram id="payroll-enterprise" name="Payroll Enterprise Data Model">
+    <mxGraphModel dx="2200" dy="1300" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2400" pageHeight="1400" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="title" value="Payroll Domain — Enterprise Data Model" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=28;fontStyle=1;fontColor=#1F2937;" vertex="1" parent="1">
+          <mxGeometry x="350" y="30" width="1500" height="45" as="geometry"/>
+        </mxCell>
+        <mxCell id="subtitle" value="Reusable enterprise concepts, definitions and Crow's Foot relationships · Payroll examples shown for context" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=15;fontColor=#4B5563;" vertex="1" parent="1">
+          <mxGeometry x="300" y="78" width="1600" height="35" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="party" value="&lt;div style=&quot;background:#DCE8F5;padding:10px;text-align:center;font-weight:bold;font-size:17px&quot;&gt;PARTY&lt;/div&gt;&lt;div style=&quot;padding:13px;font-size:14px;line-height:1.35&quot;&gt;PARTY represents a person, organisation or external body participating in payroll. Examples include a worker, employing organisation, payroll provider, tax authority and pension provider.&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#4F6B8A;strokeWidth=2;fillColor=#FFFFFF;align=left;verticalAlign=top;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="80" y="170" width="390" height="210" as="geometry"/>
+        </mxCell>
+        <mxCell id="agreement" value="&lt;div style=&quot;background:#DCEFCF;padding:10px;text-align:center;font-weight:bold;font-size:17px&quot;&gt;AGREEMENT&lt;/div&gt;&lt;div style=&quot;padding:13px;font-size:14px;line-height:1.35&quot;&gt;AGREEMENT represents an arrangement that establishes employment, payroll or statutory rights and obligations. Examples include employment, payroll enrolment and pension arrangements.&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#5E7D4A;strokeWidth=2;fillColor=#FFFFFF;align=left;verticalAlign=top;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="600" y="170" width="390" height="210" as="geometry"/>
+        </mxCell>
+        <mxCell id="time-period" value="&lt;div style=&quot;background:#F3E8B5;padding:10px;text-align:center;font-weight:bold;font-size:17px&quot;&gt;TIME PERIOD&lt;/div&gt;&lt;div style=&quot;padding:13px;font-size:14px;line-height:1.35&quot;&gt;TIME PERIOD represents a defined interval used to organise payroll and statutory activity. Examples include a payroll period, tax period and employment period.&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#9A7B20;strokeWidth=2;fillColor=#FFFFFF;align=left;verticalAlign=top;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="170" width="390" height="210" as="geometry"/>
+        </mxCell>
+        <mxCell id="classification" value="&lt;div style=&quot;background:#E7DCF3;padding:10px;text-align:center;font-weight:bold;font-size:17px&quot;&gt;CLASSIFICATION&lt;/div&gt;&lt;div style=&quot;padding:13px;font-size:14px;line-height:1.35&quot;&gt;CLASSIFICATION represents a controlled category used to organise payroll information consistently. Examples include payroll element, worker type and earning or deduction type.&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#72558D;strokeWidth=2;fillColor=#FFFFFF;align=left;verticalAlign=top;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="1640" y="170" width="390" height="210" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="location" value="&lt;div style=&quot;background:#F3E8B5;padding:10px;text-align:center;font-weight:bold;font-size:17px&quot;&gt;LOCATION&lt;/div&gt;&lt;div style=&quot;padding:13px;font-size:14px;line-height:1.35&quot;&gt;LOCATION represents a physical, postal, organisational or jurisdictional place relevant to payroll. Examples include work location, employing location, payment jurisdiction and tax jurisdiction.&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#9A7B20;strokeWidth=2;fillColor=#FFFFFF;align=left;verticalAlign=top;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="80" y="650" width="390" height="210" as="geometry"/>
+        </mxCell>
+        <mxCell id="event" value="&lt;div style=&quot;background:#DCEFCF;padding:10px;text-align:center;font-weight:bold;font-size:17px&quot;&gt;EVENT&lt;/div&gt;&lt;div style=&quot;padding:13px;font-size:14px;line-height:1.35&quot;&gt;EVENT represents an occurrence recorded during employment or payroll processing. Examples include payroll input, payroll run, payment transaction and statutory submission.&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#5E7D4A;strokeWidth=2;fillColor=#FFFFFF;align=left;verticalAlign=top;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="600" y="650" width="390" height="210" as="geometry"/>
+        </mxCell>
+        <mxCell id="asset" value="&lt;div style=&quot;background:#E7DCF3;padding:10px;text-align:center;font-weight:bold;font-size:17px&quot;&gt;ASSET&lt;/div&gt;&lt;div style=&quot;padding:13px;font-size:14px;line-height:1.35&quot;&gt;ASSET represents a monetary or information resource produced, controlled or managed through payroll. Examples include payroll result, result line, payment instruction, cost allocation and submission result.&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#72558D;strokeWidth=2;fillColor=#FFFFFF;align=left;verticalAlign=top;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="650" width="390" height="210" as="geometry"/>
+        </mxCell>
+        <mxCell id="document" value="&lt;div style=&quot;background:#DCE8F5;padding:10px;text-align:center;font-weight:bold;font-size:17px&quot;&gt;DOCUMENT&lt;/div&gt;&lt;div style=&quot;padding:13px;font-size:14px;line-height:1.35&quot;&gt;DOCUMENT represents a formal payroll record communicated, submitted or retained as evidence. Examples include a payslip, statutory return and payroll report.&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#4F6B8A;strokeWidth=2;fillColor=#FFFFFF;align=left;verticalAlign=top;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="1640" y="650" width="390" height="210" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e1" value="participates in" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;endArrow=ERzeroToMany;endFill=0;startArrow=ERone;startFill=0;fontSize=13;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="party" target="agreement"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e2" value="associated with" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;endArrow=ERzeroToMany;endFill=0;startArrow=ERzeroToMany;startFill=0;fontSize=13;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="party" target="location"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e3" value="participates in" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;endArrow=ERzeroToMany;endFill=0;startArrow=ERone;startFill=0;fontSize=13;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="party" target="event"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="275" y="530"/><mxPoint x="795" y="530"/></Array></mxGeometry></mxCell>
+        <mxCell id="e4" value="governs" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;endArrow=ERzeroToMany;endFill=0;startArrow=ERone;startFill=0;fontSize=13;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="agreement" target="event"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e5" value="groups" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;endArrow=ERzeroToMany;endFill=0;startArrow=ERone;startFill=0;fontSize=13;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="time-period" target="event"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1315" y="530"/><mxPoint x="795" y="530"/></Array></mxGeometry></mxCell>
+        <mxCell id="e6" value="classifies" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;endArrow=ERzeroToMany;endFill=0;startArrow=ERone;startFill=0;fontSize=13;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="classification" target="event"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1835" y="570"/><mxPoint x="795" y="570"/></Array></mxGeometry></mxCell>
+        <mxCell id="e7" value="produces" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;endArrow=ERzeroToMany;endFill=0;startArrow=ERone;startFill=0;fontSize=13;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="event" target="asset"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e8" value="represented by" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;endArrow=ERzeroToMany;endFill=0;startArrow=ERone;startFill=0;fontSize=13;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="asset" target="document"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e9" value="allocated to" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;endArrow=ERzeroToMany;endFill=0;startArrow=ERzeroToMany;startFill=0;fontSize=13;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="asset" target="location"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1315" y="970"/><mxPoint x="275" y="970"/></Array></mxGeometry></mxCell>
+
+        <mxCell id="legend" value="Crow's Foot legend:  | = exactly one     O| = zero or one     |&lt; = one or many     O&lt; = zero or many" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#9CA3AF;fillColor=#F9FAFB;fontSize=14;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="450" y="1060" width="1300" height="60" as="geometry"/></mxCell>
+        <mxCell id="note" value="Enterprise concepts provide a reusable semantic layer above Payroll logical entities. Examples are illustrative specialisations—not attributes or physical fields." style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#9CA3AF;fillColor=#F9FAFB;fontSize=14;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="450" y="1140" width="1300" height="70" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
